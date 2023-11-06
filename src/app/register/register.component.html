@@ -1,0 +1,60 @@
+<navRe></navRe>
+<div class="container mt-5 mb-5">
+    <h1>Register</h1>
+
+    <!-- Role Selection -->
+    <div class="mb-3">
+        <label for="roleSelect" class="form-label">Register As:</label>
+        <select class="form-control" id="roleSelect" [(ngModel)]="selectedRole" name="role" #role="ngModel">
+            <option value="merchant">Merchant</option>
+            <option value="customer">Customer</option>
+        </select>
+    </div>
+
+    <form class="col-lg-8" (submit)="onSubmit(registerForm)" #registerForm="ngForm">
+        <div class="row">
+            <!-- Common Fields for Both Roles -->
+            <div class="col-lg-6 mt-2 mb-2">
+                <label for="firstName" class="form-label">First Name</label>
+                <input type="text" class="form-control" ngModel placeholder="Enter First Name" name="firstName" #firstName="ngModel" required>
+                <mat-error *ngIf="firstName.invalid">Please enter your first name</mat-error>
+            </div>
+
+            <div class="col-lg-6 mt-2 mb-2">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input type="text" class="form-control" ngModel placeholder="Enter Last Name" name="lastName" #lastName="ngModel" required>
+                <mat-error *ngIf="lastName.invalid">Please enter your last name</mat-error>
+            </div>
+
+            <div class="col-lg-12 mt-2 mb-2">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" placeholder="Enter Email ID" name="email" ngModel #email="ngModel" required>
+                <mat-error *ngIf="email.invalid">Please enter a valid email</mat-error>
+            </div>
+
+            <div *ngIf="selectedRole === 'customer'" class="col-lg-12 mt-2 mb-2">
+                <label for="passowrd" class="form-label">Password</label>
+                <input type="password" class="form-control" placeholder="Enter Password" name="password" ngModel #password="ngModel" required>
+                <mat-error *ngIf="password.invalid">Please provide password</mat-error>
+            </div>
+
+            <div class="col-lg-12 mt-2 mb-2">
+                <label for="contactNumber" class="form-label">Contact Number</label>
+                <input type="text" class="form-control" placeholder="Enter Mobile" name="contactNumber" ngModel #contactNumber="ngModel" required>
+                <mat-error *ngIf="contactNumber.invalid">Please enter your contact number</mat-error>
+            </div>
+
+            <!-- Merchant Specific Fields -->
+            <div *ngIf="selectedRole === 'merchant'" class="col-lg-12 mt-2 mb-2">
+                <label for="description" class="form-label">Description</label>
+                <textarea required ngModel class="form-control" id="description" rows="3" name="description" #description="ngModel" placeholder="Describe your business"></textarea>
+                <mat-error *ngIf="description.invalid">Please provide a description for your business</mat-error>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="col-lg-12">
+                <button class="btn btn-md btn-dark" type="submit">Register</button>
+            </div>
+        </div>
+    </form>
+</div>
