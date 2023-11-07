@@ -20,9 +20,9 @@ import { EditProductComponent } from './edit-product/edit-product.component';
 import { MerchantNavBar } from './merchant nav/MerchantNav.component';
 import { AddProductComponent } from './add-product/add-product.component';
 import { AnalyticsComponent } from './analytics/analytics.component';
-// import { PurchasingComponent } from './purchasing/purchasing.component';
+import { PurchasingComponent } from './purchasing/purchasing.component';
 import { AnalyticsOfficerComponent } from './analyticsOfficer/analyticsOfficer.component';
-// import { ReviewComponent } from './review/review.component';
+import { ReviewComponent } from './review/review.component';
 import { MenuComponent } from './menu/menu.component';
 import { officerNavBar } from './officer-nav/officer-nav.component';
 import {HttpClientModule} from '@angular/common/http';
@@ -43,9 +43,9 @@ import { MatDialogModule } from '@angular/material/dialog';
     MerchantNavBar,
     AddProductComponent,
     AnalyticsComponent,
-    // PurchasingComponent,
+    PurchasingComponent,
     AnalyticsOfficerComponent,
-    // ReviewComponent,
+    ReviewComponent,
     MenuComponent,
     officerNavBar,
     FirstTimeLoginComponent,
