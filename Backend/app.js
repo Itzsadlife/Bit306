@@ -13,27 +13,29 @@ const details = {
 };
 const multer = require('multer');
 const path = require('path');
-const cors = require('cors');
-const app = express();
+const Purchase = require('./models/purchase')
+const Review = require('./models/review');
 
 
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, path.join(__dirname, './uploads'));
-    },     
+     },     
     filename: function(req, file, cb) {
         const date = new Date().toISOString().replace(/:/g, '_').split('.')[0];
         const extension = path.extname(file.originalname);
-        cb(null, date + extension);
-
+        cb(null, extension + date + '.jpg');
     }    
 });
 
 const upload = multer({ storage: storage });
 
 
+const cors = require('cors');
 
+
+const app = express();
 
 
 mongoose.connect("mongodb+srv://bit306:assignment@cluster0.uulatfu.mongodb.net/TourCare?retryWrites=true&w=majority")
@@ -44,8 +46,10 @@ mongoose.connect("mongodb+srv://bit306:assignment@cluster0.uulatfu.mongodb.net/T
     console.log('connection failed');
 });
 
+app.use(bodyParser.json());
 
-app.use(cors());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -53,77 +57,40 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
+app.use(cors());
 
 function generateRandomPassword(length = 10) {
     return crypto.randomBytes(length).toString('hex').slice(0, length);
 }
 
 const randomPassword = generateRandomPassword();
-
-//merchant register
 app.post("/api/merchants/register", (req, res, next) => {
-    // First, check if the email already exists in the database
-    Merchant.findOne({ email: req.body.email })
-        .then(existingMerchant => {
-            if (existingMerchant) {
-                // If a merchant with the email already exists, return an error response
-                return res.status(401).json({
-                    message: "Email already in use"
-                });
-                // Return here to prevent further execution after response is sent
-            }
+    bcrypt.hash(randomPassword, 10).then(hash => {
+    const merchant = new Merchant({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        contactNumber: req.body.contactNumber,
+        description: req.body.description,
+        password: hash,
+    });
 
-            // Generate a random password here or ensure it's generated before this block
-            const randomPassword = generateRandomPassword();
+    // Log the data to CMD
+    console.log('Received registration data:', req.body,randomPassword);
 
-            // If the email does not exist, proceed to hash the password
-            return bcrypt.hash(randomPassword, 10);
-        })
-        .then(hash => {
-            if (!hash) {
-                // If hash wasn't created, throw an error to skip to the catch block
-                throw new Error('Password hash not generated');
-            }
-
-            // Create a new merchant with the hashed password
-            const merchant = new Merchant({
-                // ... other merchant details ...
-                password: hash,
-            });
-
-            // Save the new merchant to the database
-            return merchant.save();
-        })
-        .then(result => {
-            if (result) {
-                // Convert the Mongoose document to a plain JavaScript object and remove sensitive fields
-                const resultObject = result.toObject();
-                delete resultObject.password;
-
-                // If the merchant was saved successfully, return a success response
-                return res.status(201).json({
-                    message: 'Merchant registered successfully!',
-                    result: resultObject
-                });
-                // Return here to prevent further execution after response is sent
-            }
-        })
-        .catch(err => {
-            // If a response was already sent, don't try to send another one
-            if (!res.headersSent) {
-                res.status(500).json({
-                    message: 'Failed to register merchant!',
-                    error: err.message
-                });
-            }
+    merchant.save().then(result => {
+        res.status(201).json({
+            message: 'User registered successfully!',
+            result: result
         });
+    }).catch(err => {
+        res.status(500).json({
+            message: 'Failed to register user!',
+            error: err
+        });
+    });
 });
-
+});
 
 //done register send email
 app.post("/api/register/sendmail",(req,res)=>{
@@ -283,63 +250,41 @@ app.get('/api/merchants', (req, res) => {
     });
 });
 
-//user
+
+//users
 app.post("/api/users/register", (req, res, next) => {
-    // Check if the email already exists in the database
-    User.findOne({ email: req.body.email })
-        .then(user => {
-            if (user) {
-                // If a user with the email already exists, return an error response
-                return res.status(409).json({
-                    message: "Email already in use"
-                });
-            }
-
-            // If the email does not exist, proceed to hash the password
-            return bcrypt.hash(req.body.password, 10);
-        })
-        .then(hash => {
-            if (!hash) {
-                // If hash wasn't created, exit the function to prevent further execution
-                return;
-            }
-            // Create a new user with the hashed password
-            const user = new User({
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                email: req.body.email,
-                contactNumber: req.body.contactNumber,
-                password: hash
-            });
-
-            // Log the data to CMD
-            console.log('Received registration data:', req.body);
-
-            // Save the new user to the database
-            return user.save();
-        })
-        .then(result => {
-            if (result) {
-                res.status(201).json({
-                    message: 'User registered successfully!',
-                    result: result
-                });
-            }
-        })
-        .catch(err => {
-            res.status(500).json({
-                message: 'Failed to register user!',
-                error: err
-            });
+    bcrypt.hash(req.body.password, 10).then(hash => {
+        const user = new User({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            contactNumber: req.body.contactNumber,
+            password: hash
         });
-});
 
+    // Log the data to CMD
+    console.log('Received registration data:', req.body);
+
+    user.save().then(result => {
+        res.status(201).json({
+            message: 'User registered successfully!',
+            result: result
+        });
+    }).catch(err => {
+        res.status(500).json({
+            message: 'Failed to register user!',
+            error: err
+        });
+    });
+});
+});
 
 //login
 
 app.post("/api/user/login", (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
+    console.log("Email user",email)
 
     User.findOne({ email: email })
     .then(user => {
@@ -453,41 +398,109 @@ app.post("/api/product/add-product", upload.single('imageUrl'), (req, res, next)
     const product = new Product({
       ...req.body,
       merchantId : req.body.merchantId,
-        imageUrl: req.file.filename
+      imageUrl: req.file.path
     });
-    console.log(product.imageUrl);
     product.save().then(result=>{
         res.status(200).json(result);
-        console.log(product);
     }).catch(err=>{
         console.error(err);
         res.status(500).send(err);
     });
 });
-app.patch("/api/product/edit-product/:id", upload.single('imageUrl'), async (req, res, next) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    
+
+app.put("/api/product/edit-product/:id",(req,res,next)=>{
+    Product.findById(req.params.id,req.body,{new:true}).then(product=>{
+        res.json(product);
+    }).catch(err=>{
+        console.error(err);
+        res.status(500).send(err);
+    })
+})
+
+// Endpoint to get the list of products from the database
+app.get('/api/products', async (req, res) => {
+    try {
+      const products = await Product.find();
+      res.json(products);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+    // Endpoint to record a purchase
+app.post('/api/purchase', async (req, res) => {
+    const { productName, customerName, customerEmail, paymentAmount } = req.body;
+    const product = await Product.findOne({ name: productName });
+  
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
+  
+    // Inside your POST request to /api/purchase
+const purchase = new Purchase({
+    product: productName, // Assuming productName contains the product name
+    customerName,
+    customerEmail,
+    productId: product._id, // Assuming product contains the product details
+    //userId: user._id, // Assuming user contains the user details
+    price: paymentAmount,
+  });
+  
+  
 
-    // Update the product fields
-      product.name = req.body.name || product.name;
-      product.description = req.body.description || product.description;
-      product.price = req.body.price || product.price;
-      product.imageUrl = req.file.filename;
-      console.log(product.imageUrl);
-      // Save the updated product
-      const updatedProduct = await product.save();
-      res.json(updatedProduct);
-    
-  } catch (err) {
-    console.error(err);
-    return res.status(500).send(err);
+    try {
+        await purchase.save();
+        res.status(201).json({ message: 'Purchase recorded successfully' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    });
+
+    // Route to get purchased products by user email
+app.get('/api/purchases/:email', async (req, res) => {
+    try {
+        console.log(req.params.email)
+      const userEmail = req.params.email;
+      const userPurchases = await Purchase.find({ customerEmail: userEmail })
+        .populate('productId') // Make sure the Product model is correctly referenced
+        .exec();
+  
+      // Extract the product details from the purchases
+      const purchasedProducts = userPurchases.map(purchase => purchase.productId);
+  
+      res.json(purchasedProducts);
+    } catch (error) {
+      console.error('Error fetching purchased products:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+  
+  // In your app.js or wherever you handle your routes
+
+// Endpoint to create a review
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const { productId, customerEmail, rating, comment } = req.body;
+
+    // Create a new review
+    const newReview = new Review({
+      productId,
+      customerEmail,
+      rating,
+      comment
+    });
+
+    // Save the review to the database
+    const savedReview = await newReview.save();
+
+    res.status(201).json(savedReview);
+  } catch (error) {
+    console.error('Error saving review:', error);
+    res.status(500).send(error.message || 'An error occurred while saving the review.');
   }
 });
-
 
 
 module.exports = app; 
