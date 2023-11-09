@@ -1,0 +1,54 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" routerLink="">TourCare</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <!-- merchant -->
+          <li *ngIf="isMerchant" class="nav-item">
+            <a class="nav-link" routerLink="/home"  routerLinkActive="active-link" [routerLinkActiveOptions]="{exact:true}" >Home</a>
+          </li>
+          <li *ngIf="isMerchant" class="nav-item">
+            <a class="nav-link" routerLink="/add-product" routerLinkActive="active-link">Add Product</a>
+          </li>
+          <li *ngIf="isMerchant" class="nav-item">
+            <a class="nav-link" routerLink="/edit-product" routerLinkActive="active-link">Edit Product</a>
+          </li>
+          <li *ngIf="isMerchant" class="nav-item">
+            <a class="nav-link" routerLink="/view-analytics" routerLinkActive="active-link">View Analytics</a>
+          </li>
+          <li *ngIf="isMerchant" class="nav-item">
+            <a class="nav-link" (click)="onLogout()" routerLink="/login" routerLinkActive="active-link">Logout</a>
+          </li>
+          <!-- Guest Mode -->
+          <li *ngIf="isGuest" class="nav-item">
+            <a class="nav-link" routerLink="" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact:true}">Home</a>
+          </li>
+          <li *ngIf="isGuest" class="nav-item">
+            <a class="nav-link" routerLink="/purchase" routerLinkActive="active-link">Purchase</a>
+          </li>
+          <li *ngIf="isGuest" class="nav-item">
+            <a class="nav-link" routerLink="/review" routerLinkActive="active-link">Review</a>
+          </li>
+          <li *ngIf="isGuest" class="nav-item">
+            <a class="nav-link" routerLink="/login" routerLinkActive="active-link">Login</a>
+          </li>
+          <!-- user -->
+          <li *ngIf="isUser" class="nav-item">
+            <a class="nav-link" routerLink="" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact:true}">Home</a>
+          </li>
+          <li *ngIf="isUser" class="nav-item">
+            <a class="nav-link" routerLink="/purchase" routerLinkActive="active-link">Purchase</a>
+          </li>
+          <li *ngIf="isUser" class="nav-item">
+            <a class="nav-link" routerLink="/review" routerLinkActive="active-link">Review</a>
+          </li>
+          <li *ngIf="isUser" class="nav-item">
+            <a class="nav-link" (click)="onLogout()" routerLink="/login" routerLinkActive="active-link">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>

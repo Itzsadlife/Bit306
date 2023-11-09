@@ -1,0 +1,115 @@
+<merchant-navbar></merchant-navbar>
+<div class="container">
+  <h1 class="title">Purchase Tourism Products</h1>
+  <div class="product-list">
+    <div class="product" *ngFor="let product of products">
+      <img [src]="product.imageUrl" [alt]="product.name">
+      <div class="product-info">
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+        <p>Price: RM{{ product.price }}</p>
+        <!-- Assuming you will add ratings in the future, for now, you can either remove this line or hardcode a value -->
+        <p class="rating">Rating: 4.5</p> 
+        <button class="purchase-button" (click)="purchaseProduct(product.name)">Purchase</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Purchase Form -->
+<div *ngIf="showPurchaseForm" class="purchase-form">
+  <h2 class="form-title">Enter Your Information</h2>
+<form #purchaseForm="ngForm" (submit)="submitPurchase()">
+    <!-- Form fields for customer information -->
+    <label for="name">Name:</label>
+    <input
+      type="text"
+      id="name"
+      required
+      [(ngModel)]="customerName"
+      name="customerName"
+      #customerNameInput="ngModel"
+    />
+    <!-- Display a validation message if the Name field is invalid -->
+    <div *ngIf="customerNameInput.invalid && customerNameInput.dirty" class="validation-error">
+      Name is required.
+    </div>
+
+    <label for="email">Email:</label>
+    <input
+      type="email"
+      id="email"
+      required
+      [(ngModel)]="customerEmail"
+      name="customerEmail"
+      #customerEmailInput="ngModel"
+      pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}"
+    />
+    <!-- Display a validation message if the Email field is invalid -->
+    <div *ngIf="customerEmailInput.invalid && customerEmailInput.dirty" class="validation-error">
+      Email is required and must be a valid email address.
+    </div>
+
+    <!-- Add more form fields as needed -->
+
+    <button class="form-button" type="submit" [disabled]="purchaseForm.invalid">Next</button>
+  </form>
+</div>
+
+
+<!-- Payment Page -->
+<div *ngIf="showPaymentPage" class="payment-page">
+  <h2 class="form-title">Payment Information</h2>
+  <form (submit)="submitPayment()" #paymentForm="ngForm">
+    <!-- Form fields for payment information -->
+    <label for="creditCard">Credit Card:</label>
+    <input
+      type="text"
+      id="creditCard"
+      required
+      [(ngModel)]="creditCard"
+      name="creditCard"
+      #creditCardInput="ngModel"
+      pattern="[0-9]{16}" 
+    />
+    <!-- Display a validation message if the Credit Card field is invalid -->
+    <div *ngIf="creditCardInput.invalid && creditCardInput.dirty" class="validation-error">
+      Credit Card is required and must be a 16-digit number.
+    </div>
+
+    <!-- Add more form fields for payment as needed -->
+
+    <button class="form-button" type="submit" [disabled]="paymentForm.invalid">Submit</button>
+  </form>
+</div>
+
+
+  <!-- Successful Booking Message -->
+  <div *ngIf="bookingSuccessful" class="success-message">
+    <p class="success-text">Booking successful!</p>
+    <button class="success-button" (click)="generateReceipt()">Save Receipt</button>
+  </div>
+</div>
+
+<!-- Receipt Section -->
+<div *ngIf="bookingSuccessful" class="receipt">
+  <div class="receipt-header">
+    <h2>Receipt</h2>
+    <p>Thank you for your purchase!</p>
+  </div>
+  <div class="receipt-body">
+    <div class="receipt-item">
+      <strong>Product:</strong>
+      <span>{{ selectedProduct }}</span>
+    </div>
+    <div class="receipt-item">
+      <strong>Name:</strong>
+      <span>{{ customerName }}</span>
+    </div>
+    <div class="receipt-item">
+      <strong>Email:</strong>
+      <span>{{ customerEmail }}</span>
+    </div>
+    <!-- Add more receipt details as needed -->
+  </div>
+</div>
+
