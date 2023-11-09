@@ -7,10 +7,13 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const Product = require('./models/product');
+const Admin = require('./models/admin');
 const details = {
     email: 'helptourcare@gmail.com',
     password: 'brpqhrygzstzjeno'
 };
+const Purchase = require('./models/purchase');
+const Review = require('./models/review');
 const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
@@ -67,6 +70,7 @@ const randomPassword = generateRandomPassword();
 
 //merchant register
 app.post("/api/merchants/register", (req, res, next) => {
+    console.log('Incoming request data:', req.body);
     // First, check if the email already exists in the database
     Merchant.findOne({ email: req.body.email })
         .then(existingMerchant => {
@@ -91,9 +95,16 @@ app.post("/api/merchants/register", (req, res, next) => {
             }
 
             // Create a new merchant with the hashed password
+            
+            const { firstName, lastName, email, contactNumber, description } = req.body;
+
             const merchant = new Merchant({
-                // ... other merchant details ...
-                password: hash,
+                firstName,
+                lastName,
+                email,
+                contactNumber,
+                description,
+                password: hash, // the hashed password
             });
 
             // Save the new merchant to the database
@@ -114,10 +125,11 @@ app.post("/api/merchants/register", (req, res, next) => {
             }
         })
         .catch(err => {
+            console.error(err)
             // If a response was already sent, don't try to send another one
             if (!res.headersSent) {
                 res.status(500).json({
-                    message: 'Failed to register merchant!',
+                    message: 'Internal Server Error during merchant registration!',
                     error: err.message
                 });
             }
@@ -289,21 +301,16 @@ app.post("/api/users/register", (req, res, next) => {
     User.findOne({ email: req.body.email })
         .then(user => {
             if (user) {
-                // If a user with the email already exists, return an error response
                 return res.status(409).json({
                     message: "Email already in use"
                 });
             }
-
-            // If the email does not exist, proceed to hash the password
             return bcrypt.hash(req.body.password, 10);
         })
         .then(hash => {
             if (!hash) {
-                // If hash wasn't created, exit the function to prevent further execution
-                return;
+                throw new Error('Password hashing failed'); // Throw an error to be caught by the catch block.
             }
-            // Create a new user with the hashed password
             const user = new User({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -312,27 +319,29 @@ app.post("/api/users/register", (req, res, next) => {
                 password: hash
             });
 
-            // Log the data to CMD
-            console.log('Received registration data:', req.body);
-
-            // Save the new user to the database
             return user.save();
         })
         .then(result => {
             if (result) {
+                const resultObject = result.toObject();
+                delete resultObject.password; // Remove the password before sending the result.
+
                 res.status(201).json({
                     message: 'User registered successfully!',
-                    result: result
+                    result: resultObject
                 });
             }
         })
         .catch(err => {
-            res.status(500).json({
-                message: 'Failed to register user!',
-                error: err
-            });
+            if (!res.headersSent) {
+                res.status(500).json({
+                    message: 'User email is already use! Please Check Your Email',
+                    error: err.message
+                });
+            }
         });
 });
+
 
 
 //login
@@ -401,6 +410,32 @@ app.post("/api/merchant/login", (req, res, next) => {
         // Log the error for debugging purposes
         console.error(err);
         return res.status(500).json({ message: 'Server error.' });
+    });
+});
+
+app.post("/api/admin/login", (req, res, next) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    console.log(email);
+    Admin.findOne({ email: email }).then(admin => {
+        if (!admin) {
+            return res.status(401).json({ message: 'Authentication failed. User not found.' });
+        }
+
+        if (admin.password !== password) {
+            return res.status(401).json({ message: 'Incorrect password.' });
+        }
+
+        res.status(200).json({
+            message: 'Admin logged in successfully',
+            admin: {
+                _id: admin._id,
+                email: admin.email,
+            }
+        });
+    }).catch(err => {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error.' });
     });
 });
 
@@ -487,6 +522,95 @@ app.patch("/api/product/edit-product/:id", upload.single('imageUrl'), async (req
     return res.status(500).send(err);
   }
 });
+
+
+// Endpoint to get the list of products from the database
+app.get('/api/products', async (req, res) => {
+    try {
+      const products = await Product.find();
+        res.json(products);
+        console.log(products);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+    // Endpoint to record a purchase
+app.post('/api/purchase', async (req, res) => {
+    const { productName, customerName, customerEmail, paymentAmount } = req.body;
+    const product = await Product.findOne({ name: productName });
+  
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+  
+    // Inside your POST request to /api/purchase
+const purchase = new Purchase({
+    product: productName, // Assuming productName contains the product name
+    customerName,
+    customerEmail,
+    productId: product._id, // Assuming product contains the product details
+    //userId: user._id, // Assuming user contains the user details
+    price: paymentAmount,
+  });
+  
+  
+
+    try {
+        await purchase.save();
+        res.status(201).json({ message: 'Purchase recorded successfully' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    });
+
+    // Route to get purchased products by user email
+app.get('/api/purchases/:email', async (req, res) => {
+    try {
+        console.log(req.params.email)
+      const userEmail = req.params.email;
+      const userPurchases = await Purchase.find({ customerEmail: userEmail })
+        .populate('productId') // Make sure the Product model is correctly referenced
+        .exec();
+  
+      // Extract the product details from the purchases
+      const purchasedProducts = userPurchases.map(purchase => purchase.productId);
+  
+      res.json(purchasedProducts);
+    } catch (error) {
+      console.error('Error fetching purchased products:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+  
+  // In your app.js or wherever you handle your routes
+
+// Endpoint to create a review
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const { productId, customerEmail, rating, comment } = req.body;
+
+    // Create a new review
+    const newReview = new Review({
+      productId,
+      customerEmail,
+      rating,
+      comment
+    });
+
+    // Save the review to the database
+    const savedReview = await newReview.save();
+
+    res.status(201).json(savedReview);
+  } catch (error) {
+    console.error('Error saving review:', error);
+    res.status(500).send(error.message || 'An error occurred while saving the review.');
+  }
+});
+
+
 
 
 

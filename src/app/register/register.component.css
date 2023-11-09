@@ -30,3 +30,7 @@ h1 {
 .btn-dark:hover {
     background-color: #555;
 }
+
+.validation-error {
+    color: red;
+}

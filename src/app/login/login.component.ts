@@ -8,9 +8,9 @@ import { AuthService } from '../auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent{
+export class LoginComponent {
   public errorMessage: string = '';
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) { }
   
 
   loginValidation(form: NgForm) {
@@ -23,27 +23,43 @@ export class LoginComponent{
       
     this.authService.userLogin(email, password).subscribe(
       response => {
-        this.router.navigate(['']);
+        // If user login is successful, navigate to the user home page
+        this.router.navigate(['/user-home']);
       },
       error => {
         if (error.status === 401) {
-          // Try to authenticate as a merchant
+          // If user login fails, try to authenticate as a merchant
           this.authService.merchantLogin(email, password).subscribe(
             merchantResponse => {
-              this.router.navigate(['/home']);
+              // If merchant login is successful, navigate to the merchant home page
+              this.router.navigate(['/merchant-home']);
             },
             merchantError => {
               if (merchantError.status === 401) {
-                this.errorMessage = merchantError.error.message;
+                // If merchant login fails, try to authenticate as an admin
+                this.authService.adminLogin(email, password).subscribe(
+                  adminResponse => {
+                    // If admin login is successful, navigate to the admin review page
+                    this.router.navigate(['/review-register']);
+                  },
+                  adminError => {
+                    if (adminError.status === 401) {
+                      // If admin login also fails, show an error message
+                      this.errorMessage = 'Login failed for all roles. Please check your credentials.';
+                    } else {
+                      this.errorMessage = 'An unexpected error occurred during admin login.';
+                    }
+                  }
+                );
               } else {
-                this.errorMessage = 'An unexpected error occurred.';
+                this.errorMessage = 'An unexpected error occurred during merchant login.';
               }
             }
           );
         } else {
-          this.errorMessage = 'An unexpected error occurred.';
+          this.errorMessage = 'An unexpected error occurred during user login.';
         }
       }
     );
-    }   
+  }
 }

@@ -50,17 +50,25 @@ export class RegisterComponent {
                         verticalPosition: 'top',
                     });
                 });
+                        form.resetForm();
             },
             error => {
-                console.error('Error occurred:', error);
-                this.snackBar.open('Registration Failed! Please try again.', 'Close', {
-                    duration: 3000,
-                    horizontalPosition: 'right',
-                    verticalPosition: 'top',
-                });
+                 let errorMessage = 'Registration Failed! Please try again.';
+                if (error.status === 401 && error.error.message) {
+                    errorMessage = error.error.message;
+                }
+                else if (error.status == 500 && error.error.message) {
+                    errorMessage = error.error.message;
+                }
+             this.snackBar.open(errorMessage, 'Close', {
+                duration: 3000,
+                horizontalPosition: 'right',
+                verticalPosition: 'top',
+            });
             }
         );
-    } else {this.customerService.addCustomer(
+    } else { // This else block handles customer registration
+    this.customerService.addCustomer(
         form.value.firstName, 
         form.value.lastName,
         form.value.email,
@@ -73,19 +81,29 @@ export class RegisterComponent {
                 horizontalPosition: 'right',
                 verticalPosition: 'top',
             });
+            form.resetForm(); // Reset the form on successful registration
         },
         error => {
+            let errorMessage = 'Registration Failed! Please try again.';
+            // Check for specific error messages based on the status code
+            if (error.status === 401 && error.error.message) {
+                errorMessage = error.error.message;
+            }
+            else if (error.status === 409 && error.error.message) {
+                errorMessage = error.error.message;
+            }
+            else if (error.status === 500 && error.error.message) {
+                errorMessage = 'Internal Server Error during registration!';
+            }
             console.error('Error occurred:', error);
-            this.snackBar.open('Registration Failed! Please try again.', 'Close', {
+            this.snackBar.open(errorMessage, 'Close', {
                 duration: 3000,
                 horizontalPosition: 'right',
                 verticalPosition: 'top',
             });
         }
     );
-    
-    }
 
-    form.resetForm();
+    }
 }
   }

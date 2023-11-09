@@ -7,10 +7,10 @@ import { RegisterComponent } from './register/register.component';
 import { EditProductComponent } from './edit-product/edit-product.component';
 import { AddProductComponent } from './add-product/add-product.component';
 import { HomeComponent } from './home/home.component';
-// import { PurchasingComponent } from './purchasing/purchasing.component';
+import { PurchasingComponent } from './purchasing/purchasing.component';
 import { AnalyticsComponent } from './analytics/analytics.component';
 import { AnalyticsOfficerComponent } from './analyticsOfficer/analyticsOfficer.component';
-// import { ReviewComponent } from './review/review.component';
+import { ReviewComponent } from './review/review.component';
 import { MenuComponent } from './menu/menu.component';
 
 
@@ -22,10 +22,10 @@ const routes: Routes = [
   { path: 'login',component:LoginComponent},
   { path: 'add-product',component:AddProductComponent},
   { path: 'home',component:HomeComponent},
-  // { path: 'purchase',component:PurchasingComponent},
+  { path: 'purchase',component:PurchasingComponent},
   { path: 'view-analytics',component:AnalyticsComponent},
   { path: 'officer-view-analytics',component:AnalyticsOfficerComponent},
-  // { path: 'review',component:ReviewComponent},
+  { path: 'review',component:ReviewComponent},
 ];
 
 @NgModule({
