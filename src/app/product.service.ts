@@ -24,7 +24,7 @@ productTypes: ProductType[] = [];
   
 
   addProduct(product: ProductType, image: File): Observable<ProductType> {
-    product.merchant_id = this.authService.getLoggedInMerchantId();
+    product.merchant_id = this.authService.getLoggedInUserId();
     const productData = new FormData();
     productData.append('name', product.name);
     productData.append('description', product.description);

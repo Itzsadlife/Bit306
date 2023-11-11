@@ -7,10 +7,13 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const Product = require('./models/product');
+const Admin = require('./models/admin');
 const details = {
     email: 'helptourcare@gmail.com',
     password: 'brpqhrygzstzjeno'
 };
+const Purchase = require('./models/purchase');
+const Review = require('./models/review');
 const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
@@ -66,8 +69,9 @@ function generateRandomPassword(length = 10) {
 const randomPassword = generateRandomPassword();
 
 //merchant register
-app.post("/api/merchants/register", (req, res, next) => {
-    // First, check if the email already exists in the database
+app.post("/api/merchants/register", upload.single('document'), (req, res, next) => {
+    console.log('Incoming request data:', req.body);
+    console.log('Uploaded file:', req.file);
     Merchant.findOne({ email: req.body.email })
         .then(existingMerchant => {
             if (existingMerchant) {
@@ -75,55 +79,76 @@ app.post("/api/merchants/register", (req, res, next) => {
                 return res.status(401).json({
                     message: "Email already in use"
                 });
-                // Return here to prevent further execution after response is sent
             }
-
             // Generate a random password here or ensure it's generated before this block
             const randomPassword = generateRandomPassword();
-
             // If the email does not exist, proceed to hash the password
-            return bcrypt.hash(randomPassword, 10);
-        })
-        .then(hash => {
-            if (!hash) {
-                // If hash wasn't created, throw an error to skip to the catch block
-                throw new Error('Password hash not generated');
-            }
-
-            // Create a new merchant with the hashed password
-            const merchant = new Merchant({
-                // ... other merchant details ...
-                password: hash,
-            });
-
-            // Save the new merchant to the database
-            return merchant.save();
-        })
-        .then(result => {
-            if (result) {
-                // Convert the Mongoose document to a plain JavaScript object and remove sensitive fields
-                const resultObject = result.toObject();
-                delete resultObject.password;
-
-                // If the merchant was saved successfully, return a success response
-                return res.status(201).json({
-                    message: 'Merchant registered successfully!',
-                    result: resultObject
+            return bcrypt.hash(randomPassword, 10)
+                .then(hash => {
+                    // Create a new merchant with the hashed password
+                    const merchant = new Merchant({
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        email: req.body.email,
+                        contactNumber: req.body.contactNumber,
+                        description: req.body.description,
+                        password: hash,
+                        documentPath: req.file ? req.file.filename : null
+                    });
+                    // Save the new merchant to the database
+                    return merchant.save().then(result => {
+                        // Set up the nodemailer transporter
+                        let transporter = nodemailer.createTransport({
+                            host: "smtp.gmail.com",
+                            port: 587,
+                            secure: false,
+                            auth: {
+                                user: details.email,
+                                pass: details.password
+                            }
+                        });
+                        // Set up mail options
+                        let mailOptions = {
+                            from: `Tour Care`,
+                            to: result.email,
+                            subject: `Successfully registered`,
+                            html: `<h1>Thank you for registering as a Merchant</h1>
+                                   <h4>We will review your request.</h4>
+                                   <h4>You will be able to login once we approved your request.</h4>
+                                   <h4>Email: ${result.email}</h4>
+                                   <h4>Password: ${randomPassword}</h4>` // Make sure to send the email securely
+                        };
+                        // Send the email
+                        transporter.sendMail(mailOptions, (error, info) => {
+                            if (error) {
+                                return console.log(error);
+                            }
+                            console.log('Message sent: %s', info.messageId);
+                            // Send back a response to the frontend
+                            res.status(201).json({
+                                message: 'Merchant registered successfully! Please check your email.',
+                                result: {
+                                    _id: result._id,
+                                    email: result.email,
+                                    // ... any other data you want to return but NOT the password
+                                }
+                            });
+                        });
+                    });
                 });
-                // Return here to prevent further execution after response is sent
-            }
         })
+
         .catch(err => {
+            console.error(err)
             // If a response was already sent, don't try to send another one
             if (!res.headersSent) {
                 res.status(500).json({
-                    message: 'Failed to register merchant!',
+                    message: 'Internal Server Error during merchant registration!',
                     error: err.message
                 });
             }
         });
 });
-
 
 //done register send email
 app.post("/api/register/sendmail",(req,res)=>{
@@ -272,38 +297,22 @@ app.patch('/api/merchants/:id', (req, res) => {
 
     });
 
-// Fetch all merchants
-app.get('/api/merchants', (req, res) => {
-    Merchant.find({}).then(merchants => {
-        console.log("Fetched merchants:", merchants);
-        res.json(merchants);
-    }).catch(err => {
-        console.error("Error occurred:", err);
-        res.status(500).send(err);
-    });
-});
-
 //user
 app.post("/api/users/register", (req, res, next) => {
     // Check if the email already exists in the database
     User.findOne({ email: req.body.email })
         .then(user => {
             if (user) {
-                // If a user with the email already exists, return an error response
                 return res.status(409).json({
                     message: "Email already in use"
                 });
             }
-
-            // If the email does not exist, proceed to hash the password
             return bcrypt.hash(req.body.password, 10);
         })
         .then(hash => {
             if (!hash) {
-                // If hash wasn't created, exit the function to prevent further execution
-                return;
+                throw new Error('Password hashing failed'); // Throw an error to be caught by the catch block.
             }
-            // Create a new user with the hashed password
             const user = new User({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -312,95 +321,87 @@ app.post("/api/users/register", (req, res, next) => {
                 password: hash
             });
 
-            // Log the data to CMD
-            console.log('Received registration data:', req.body);
-
-            // Save the new user to the database
             return user.save();
         })
         .then(result => {
             if (result) {
+                const resultObject = result.toObject();
+                delete resultObject.password; // Remove the password before sending the result.
+
                 res.status(201).json({
                     message: 'User registered successfully!',
-                    result: result
+                    result: resultObject
                 });
             }
         })
         .catch(err => {
-            res.status(500).json({
-                message: 'Failed to register user!',
-                error: err
-            });
+            if (!res.headersSent) {
+                res.status(500).json({
+                    message: 'User email is already use! Please Check Your Email',
+                    error: err.message
+                });
+            }
         });
 });
 
 
+
 //login
-
-app.post("/api/user/login", (req, res, next) => {
-    const email = req.body.email;
-    const password = req.body.password;
-
-    User.findOne({ email: email })
-    .then(user => {
-        if (!user) {
-            return res.status(401).json({ message: 'Email not found.' });
-        }
-        return bcrypt.compare(password, user.password)
-            .then(result => {
-                if (!result) {
-                    return res.status(401).json({ message: 'Incorrect password.' });
+const determineUserTypeAndAuthenticate = (email, password) => {
+  // This function returns a promise that resolves with the user type and ID if successful,
+  // or rejects with an appropriate error message.
+  return new Promise((resolve, reject) => {
+    Admin.findOne({ email: email }).then(admin => {
+      if (admin && admin.password === password) {
+        resolve({ role: 'admin', _id: admin._id });
+      } else {
+        Merchant.findOne({ email: email }).then(merchant => {
+          if (merchant) {
+            return bcrypt.compare(password, merchant.password).then(isMatch => {
+              if (isMatch) {
+                if (merchant.status === "Accepted") {
+                  resolve({ role: 'merchant', _id: merchant._id });
+                } else {
+                  reject({ message: 'Merchant account not accepted or still pending.' });
                 }
-                res.status(200).json({ message: 'Authentication successful!' });
+              } else {
+                reject({ message: 'Incorrect password.' });
+              }
             });
+          } else {
+            User.findOne({ email: email }).then(user => {
+              if (user) {
+                return bcrypt.compare(password, user.password).then(isMatch => {
+                  if (isMatch) {
+                    resolve({ role: 'user', _id: user._id });
+                  } else {
+                    reject({ message: 'Incorrect password.' });
+                  }
+                });
+              } else {
+                reject({ message: 'Email not found.' });
+              }
+            });
+          }
+        });
+      }
+    }).catch(err => reject({ message: 'Server error.', error: err }));
+  });
+};
+
+app.post("/api/login", (req, res, next) => {
+  const { email, password } = req.body;
+
+  determineUserTypeAndAuthenticate(email, password)
+    .then(authResult => {
+      res.status(200).json({
+        message: 'Authentication successful!',
+        role: authResult.role,
+        _id: authResult._id
+      });
     })
     .catch(err => {
-        // Log the error for debugging purposes
-        console.error(err);
-        return res.status(500).json({ message: 'Server error.' });
-    });
-});
-
-app.post("/api/merchant/login", (req, res, next) => {
-    const email = req.body.email;
-    const password = req.body.password;
-    const accept = "Accepted";
-    const pending = "Pending";
-    const reject = "Rejected";
-    Merchant.findOne({ email: email })
-    .then(merchant => {
-        if (!merchant) {
-            return res.status(401).json({ message: 'Email not found.' });
-        }
-        return bcrypt.compare(password, merchant.password)
-            .then(result => {
-                if (!result) {
-                    return res.status(401).json({ message: 'Incorrect password.' });
-                }
-                else if (accept == merchant.status && merchant.isFirstLogin) {
-                    return res.status(200).json({
-                        message: 'Authentication successful! First login detected.',
-                        _id: merchant._id  // Add this line to send back the merchant's _id
-                    });
-                } 
-                else if (accept == merchant.status && !merchant.isFirstLogin) {
-                    return res.status(200).json({
-                        message: 'Authentication successful!',
-                        _id: merchant._id  // Also send back the merchant's _id for normal logins
-                    });
-                }
-                else if (pending == merchant.status){
-                    return res.status(401).json({message: 'Registration is still under reviewing'});
-                }
-                else if (reject==merchant.status){
-                    return res.status(401).json({message: 'Registration is rejected'});
-                }
-            });
-    })
-    .catch(err => {
-        // Log the error for debugging purposes
-        console.error(err);
-        return res.status(500).json({ message: 'Server error.' });
+      res.status(401).json({ message: err.message });
     });
 });
 
@@ -473,20 +474,114 @@ app.patch("/api/product/edit-product/:id", upload.single('imageUrl'), async (req
     }
 
     // Update the product fields
-      product.name = req.body.name || product.name;
-      product.description = req.body.description || product.description;
-      product.price = req.body.price || product.price;
+    product.name = req.body.name || product.name;
+    product.description = req.body.description || product.description;
+    product.price = req.body.price || product.price;
+
+    // Update imageUrl only if a new file is uploaded
+    if (req.file) {
       product.imageUrl = req.file.filename;
-      console.log(product.imageUrl);
-      // Save the updated product
-      const updatedProduct = await product.save();
-      res.json(updatedProduct);
+    }
+
+    console.log(product.imageUrl);
+    // Save the updated product
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
     
   } catch (err) {
     console.error(err);
     return res.status(500).send(err);
   }
 });
+
+
+// Endpoint to get the list of products from the database
+app.get('/api/products', async (req, res) => {
+    try {
+      const products = await Product.find();
+        res.json(products);
+        console.log(products);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+    // Endpoint to record a purchase
+app.post('/api/purchase', async (req, res) => {
+    const { productName, customerName, customerEmail, paymentAmount } = req.body;
+    const product = await Product.findOne({ name: productName });
+  
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+  
+    // Inside your POST request to /api/purchase
+const purchase = new Purchase({
+    product: productName, // Assuming productName contains the product name
+    customerName,
+    customerEmail,
+    productId: product._id, // Assuming product contains the product details
+    //userId: user._id, // Assuming user contains the user details
+    price: paymentAmount,
+  });
+  
+  
+
+    try {
+        await purchase.save();
+        res.status(201).json({ message: 'Purchase recorded successfully' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    });
+
+    // Route to get purchased products by user email
+app.get('/api/purchases/:email', async (req, res) => {
+    try {
+        console.log(req.params.email)
+      const userEmail = req.params.email;
+      const userPurchases = await Purchase.find({ customerEmail: userEmail })
+        .populate('productId') // Make sure the Product model is correctly referenced
+        .exec();
+  
+      // Extract the product details from the purchases
+      const purchasedProducts = userPurchases.map(purchase => purchase.productId);
+  
+      res.json(purchasedProducts);
+    } catch (error) {
+      console.error('Error fetching purchased products:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+  
+  // In your app.js or wherever you handle your routes
+
+// Endpoint to create a review
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const { productId, customerEmail, rating, comment } = req.body;
+
+    // Create a new review
+    const newReview = new Review({
+      productId,
+      customerEmail,
+      rating,
+      comment
+    });
+
+    // Save the review to the database
+    const savedReview = await newReview.save();
+
+    res.status(201).json(savedReview);
+  } catch (error) {
+    console.error('Error saving review:', error);
+    res.status(500).send(error.message || 'An error occurred while saving the review.');
+  }
+});
+
+
 
 
 

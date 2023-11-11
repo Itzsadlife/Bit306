@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { FirstTimeLoginComponent } from '../FirstTImeLogin/firsttimelogin.component';
 import { MerchantService } from '../register.service';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'home',
@@ -15,7 +16,7 @@ export class HomeComponent implements OnInit {
   productTypes: ProductType[] = [];
   isFirstLogin : boolean;
 
-  constructor(private productService: ProductService, public dialog: MatDialog, private merchantService:MerchantService, private http:HttpClient) { }
+  constructor(private productService: ProductService, public dialog: MatDialog, private merchantService:MerchantService, private http:HttpClient, private AuthService:AuthService) { }
 
   ngOnInit(): void {
     this.productService.getProducts().subscribe(
@@ -32,7 +33,7 @@ export class HomeComponent implements OnInit {
       }
     );
     
-    const merchantId = this.merchantService.currentMerchantId; 
+    const merchantId = this.AuthService.getLoggedInUserId(); 
     this.merchantService.getMerchantDetails(merchantId).subscribe(merchant=>
       {
         this.isFirstLogin = merchant.isFirstLogin;

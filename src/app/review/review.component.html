@@ -1,0 +1,47 @@
+<merchant-navbar></merchant-navbar>
+
+<div class="container">
+    <h1>Review Tourism Products</h1>
+    
+    <!-- Display a list of purchased products to review -->
+    <div class="product-list">
+      <!-- Change "products" to "purchasedProducts" here -->
+      <div class="product" *ngFor="let product of purchasedProducts">
+        <img [src]="product.imageUrl" alt="Product Image">
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+        <button (click)="openReviewForm(product)">Review</button>
+      </div>
+  </div>
+  
+    <!-- Review Form -->
+<!-- Review Form -->
+<div *ngIf="showReviewForm" class="review-form">
+  <h2>Review Product</h2>
+  <form #reviewForm="ngForm" (submit)="submitReview(reviewForm)">
+    <label for="rating">Rating:</label>
+    <select id="rating" required [(ngModel)]="selectedRating" name="selectedRating">
+      <option value="" disabled>Select a rating</option>
+      <option value="5">5 (Excellent)</option>
+      <option value="4">4 (Good)</option>
+      <option value="3">3 (Average)</option>
+      <option value="2">2 (Fair)</option>
+      <option value="1">1 (Poor)</option>
+    </select>
+    <div *ngIf="formErrors.selectedRating" class="error-message">Rating is required.</div>
+
+    <label for="comment">Review:</label>
+    <textarea id="comment" required [(ngModel)]="reviewComment" name="reviewComment"></textarea>
+    <div *ngIf="formErrors.reviewComment" class="error-message">Review comment is required.</div>
+
+    <button type="submit">Save</button>
+  </form>
+</div>
+
+
+  
+    <!-- Success Message -->
+    <div *ngIf="reviewSaved" class="success-message">
+      <p>Review saved successfully!</p>
+    </div>
+  </div>

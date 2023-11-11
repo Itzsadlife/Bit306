@@ -6,6 +6,8 @@ export interface Merchant {
     email: string;
     contactNumber: string;
     description: string;
-    status: 'Pending' | 'Accepted' | 'Rejected'; 
+    status: 'Pending' | 'Accepted' | 'Rejected';
     isFirstLogin: boolean;
+    isReviewed: boolean;
+    documentPath?: string; // Optional field for the path to the uploaded document
 }

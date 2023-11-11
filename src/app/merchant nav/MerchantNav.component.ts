@@ -7,23 +7,23 @@ import { AuthService } from '../auth.service';
   styleUrls: ['./MerchantNav.component.css']
 })
 export class MerchantNavBar implements OnInit {
-  public isUser: boolean = false;
-  public isMerchant: boolean = false;
-  public isGuest: boolean = false;
+  isUser: boolean = false;
+  isMerchant: boolean = false;
+  isGuest: boolean = true; // Default to guest until we know otherwise
+
 
   constructor(private authService:AuthService) {
-    this.authService.isUserLoggedIn().subscribe(status=>{
-      this.isUser = status;
-    })
-    this.authService.isMerchantLoggedIn().subscribe(status=>{
-      this.isMerchant=status;
-    })
-    this.authService.isGuestModeActive().subscribe(status=>{
-      this.isGuest = status;
-    })
     }
-  ngOnInit(): void {
-    
+ ngOnInit(): void {
+    this.authService.getUserType().subscribe(userType => {
+      // Update the flags based on the userType
+      this.isUser = userType === 'user';
+      this.isMerchant = userType === 'merchant';
+      // If userType is neither 'user' nor 'merchant', default to 'guest'
+      this.isGuest = !this.isUser && !this.isMerchant;
+
+      console.log(`Current user type: ${userType}`);
+    });
   }
 
   onLogout(){

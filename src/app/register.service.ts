@@ -18,29 +18,11 @@ export class MerchantService {
     return this.http.get<Merchant[]>(`${this.baseUrl}/merchants`);
   }
 
-  addMerchant(firstName: string, lastName: string, email: string, contactNumber: string, description: string, password: string, isFirstLogin: boolean): Observable<any> {
-    const merchant: Merchant = {
-      _id: null,
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      password: password,
-      contactNumber: contactNumber,
-      description: description,
-      status: 'Pending',
-      isFirstLogin: true,
-
-    };
+  addMerchant(formData: FormData): Observable<any> {
     
-    this.HttpService.sendEmail("http://localhost:3000/api/register/sendmail",merchant).subscribe(
-      data=>{
-        let res:any=data;
-      }
-    );
-
-    return this.http.post(`${this.baseUrl}/merchants/register`, merchant);
+    return this.http.post(`${this.baseUrl}/merchants/register`, formData);
   }
-
+  
   updateStatus(_id: string, status: string) {
     return this.http.patch(`http://localhost:3000/api/merchants/${_id}`, { status: status });
 }

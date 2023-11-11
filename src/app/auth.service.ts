@@ -1,59 +1,56 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { MerchantService } from './register.service';
 import { tap } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private isUserAuthenticated = new BehaviorSubject<boolean>(false);
-  private isMerchantAuthenticated = new BehaviorSubject<boolean>(false);
-  private isGuestMode = new BehaviorSubject<boolean>(false);
+  private isAuthenticated = new BehaviorSubject<boolean>(false);
+  private userType = new BehaviorSubject<string>('guest'); // 'user', 'merchant', or 'admin'
+  private userEmail: string;
 
-  constructor(private http: HttpClient, private merchantService:MerchantService) {}
-  
-  userLogin(email: string, password: string) {
-    this.isUserAuthenticated.next(true);
-    this.isMerchantAuthenticated.next(false);
-    this.isGuestMode.next(false);
-    console.log(email);
-    return this.http.post<{ message: string }>('http://localhost:3000/api/user/login', { email: email, password: password });
+  constructor(private http: HttpClient) {}
+
+  login(email: string, password: string): Observable<{ message: string, role: string, _id?: string }> {
+    return this.http.post<{ message: string, role: string, _id?: string }>(
+      'http://localhost:3000/api/login', // Unified login endpoint
+      { email, password }
+    ).pipe(
+      tap(response => {
+        this.isAuthenticated.next(true);
+        this.userType.next(response.role);
+        this.userEmail = email;
+        localStorage.setItem('userEmail', email); // Store the email in localStorage
+        if (response._id) {
+          // If there's an ID in the response, it could be used for merchant or admin
+          localStorage.setItem('userId', response._id);
+          console.log(response._id);
+        }
+      })
+    );
   }
 
-  merchantLogin(email: string, password: string) {
-    this.isMerchantAuthenticated.next(true);
-    this.isUserAuthenticated.next(false);
-    this.isGuestMode.next(false);
-    return this.http.post<{message: string, _id: string}>('http://localhost:3000/api/merchant/login', { email: email, password: password }).pipe(
-        tap(response => {
-            this.merchantService.currentMerchantId = response._id;
-        })
-    );
-}
+  isLoggedIn(): Observable<boolean> {
+    return this.isAuthenticated.asObservable();
+  }
 
-Guest(){
-  this.isGuestMode.next(true);
-  this.isMerchantAuthenticated.next(false);
-  this.isUserAuthenticated.next(false);
-}
+  getUserType(): Observable<string> {
+    return this.userType.asObservable();
+  }
 
-isUserLoggedIn() {
-  return this.isUserAuthenticated.asObservable();
-}
-isMerchantLoggedIn() {
-  return this.isMerchantAuthenticated.asObservable();
-}
-isGuestModeActive() {
-  return this.isGuestMode.asObservable();
-}
-logout() {
-  this.isUserAuthenticated.next(false);
-  this.isMerchantAuthenticated.next(false);
-}
-getLoggedInMerchantId(): string {
-    console.log('Getting merchant ID from authService:', this.merchantService.currentMerchantId);
-    return this.merchantService.currentMerchantId;
-}
+  logout() {
+    this.isAuthenticated.next(false);
+    this.userType.next('guest');
+    this.userEmail = '';
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userId');
+  }
 
+  getLoggedInUserId(): string {
+    return localStorage.getItem('userId') || '';
+  }
 
+  getUserEmail(): string {
+    return this.userEmail || localStorage.getItem('userEmail') || '';
+  }
 }

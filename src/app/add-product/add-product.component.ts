@@ -30,7 +30,7 @@ newProduct: ProductType = {
         horizontalPosition: 'center',
         verticalPosition: 'top',
     });
-      this.newProduct = {_id:'', merchant_id : this.authService.getLoggedInMerchantId(), name: '', description: '', imageUrl: '', price:null};  
+      this.newProduct = {_id:'', merchant_id : this.authService.getLoggedInUserId(), name: '', description: '', imageUrl: '', price:null};  
       this.clearImage();
     }, error=>{
       console.log("Failed to add product", error);
