@@ -1,47 +1,44 @@
 <officer-navbar></officer-navbar>
 <div class="container mt-4">
-    <h1 class="text-center">Analytics Reports</h1>
+    <h1 class="text-center">Officer Analytics Reports</h1>
     
+    <!-- Dropdown for selecting report type -->
     <div class="menu mt-3">
       <label class="mr-2">Select Report Type:</label>
       <select [(ngModel)]="selectedReportType" (change)="onReportTypeChange()" class="form-select mr-3">
         <option value="products">Products Sold</option>
         <option value="customers">Customer Purchasing Power</option>
       </select>
-    
-      <!-- Add a dropdown for selecting a merchant -->
+    </div>
+
+    <!-- Dropdown for selecting a merchant -->
+    <div class="menu mt-3">
       <label class="mr-2">Select Merchant:</label>
       <select [(ngModel)]="selectedMerchant" (change)="onMerchantChange()" class="form-select">
         <option value="all">All Merchants</option>
-        <option value="merchant1">Merchant 1</option>
-        <option value="merchant2">Merchant 2</option>
-        <option value="merchant3">Merchant 3</option>
-        <!-- Add more merchant options as needed -->
+        <option *ngFor="let merchant of merchantsList" [value]="merchant._id">{{ merchant.name }}</option>
       </select>
     </div>
-    
 
-    <!-- Report display -->
+    <!-- Report display with Chart -->
     <div class="report mt-4 p-3 rounded">
       <h2 class="text-center">Analytics Report</h2>
       <p class="text-center">Filtered by: {{ selectedReportType }}</p>
 
-      <!-- Display analytics report data here -->
-      <div class="report-data">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>{{ selectedReportType === 'products' ? 'Product Name' : 'Customer Name' }}</th>
-              <th>{{ selectedReportType === 'products' ? 'Sales' : 'Spending' }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of analyticsData">
-              <td>{{ selectedReportType === 'products' ? item.productName : item.customerName }}</td>
-              <td>{{ selectedReportType === 'products' ? item.sales : item.spending }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- ngx-charts bar chart -->
+      <ngx-charts-bar-vertical
+        *ngIf="chartData.length"
+        [view]="[700, 300]"
+        [scheme]="'vivid'"
+        [results]="chartData"
+        [gradient]="false"
+        [xAxis]="true"
+        [yAxis]="true"
+        [legend]="true"
+        [showXAxisLabel]="true"
+        [showYAxisLabel]="true"
+        [xAxisLabel]="selectedReportType === 'products' ? 'Product' : 'Customer'"
+        [yAxisLabel]="selectedReportType === 'products' ? 'Sales' : 'Spending'">
+      </ngx-charts-bar-vertical>
     </div>
 </div>

@@ -28,6 +28,7 @@ import { officerNavBar } from './officer-nav/officer-nav.component';
 import {HttpClientModule} from '@angular/common/http';
 import { FirstTimeLoginComponent } from './FirstTImeLogin/firsttimelogin.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 
 @NgModule({
@@ -63,6 +64,7 @@ import { MatDialogModule } from '@angular/material/dialog';
     RouterModule,
     HttpClientModule,
     MatDialogModule,
+    NgxChartsModule, // Add NgxChartsModule here
   ],
   providers: [],
   bootstrap: [AppComponent]

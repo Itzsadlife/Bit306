@@ -37,18 +37,30 @@ export class PurchaseService {
   
 }
 
-
-  getAllPurchases(): any[] {
-    return this.purchases;
-  }
-
-  getPurchasesByMerchant(merchantName: string): any[] {
-    return this.purchases.filter((p) => p.merchantName === merchantName);
-  }
-
   getPurchasedProductsByUserEmail(userEmail: string): Observable<any[]> {
     
     // Make an HTTP request to your backend to fetch purchased products based on the user's email
     return this.http.get<any[]>(`http://localhost:3000/api/purchases/${userEmail}`);
+  }
+
+  // PurchaseService in Angular
+
+  getPurchases(): Observable<any[]> {
+    // Update the URL according to your server setup
+    return this.http.get<any[]>('http://localhost:3000/api/purchases');
+  }
+
+  // In PurchaseService
+
+  getPurchasesByMerchant(merchantId: string): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:3000/api/purchases/by-merchant/${merchantId}`);
+  }
+
+  getMerchants(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:3000/api/merchants');
+  }  
+
+  getAllPurchases(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:3000/api/purchases');
   }
 }
