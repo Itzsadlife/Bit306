@@ -8,9 +8,20 @@
         <h2>{{ product.name }}</h2>
         <p>{{ product.description }}</p>
         <p>Price: RM{{ product.price }}</p>
-        <!-- Assuming you will add ratings in the future, for now, you can either remove this line or hardcode a value -->
-        <p class="rating">Rating: 4.5</p> 
+        <p class="rating">Rating: 4.5</p> <!-- You might want to replace this with dynamic ratings later -->
         <button class="purchase-button" (click)="purchaseProduct(product.name)">Purchase</button>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="reviews" *ngIf="product.reviews && product.reviews.length">
+        <h3>Reviews</h3>
+        <div class="review" *ngFor="let review of product.reviews">
+          <p><strong>Rating:</strong> {{ review.rating }}</p>
+          <p>{{ review.comment }}</p>
+        </div>
+      </div>
+      <div *ngIf="!product.reviews || product.reviews.length === 0">
+        <p>No reviews yet.</p>
       </div>
     </div>
   </div>

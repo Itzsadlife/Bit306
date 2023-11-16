@@ -9,6 +9,7 @@ import { AuthService } from './auth.service';
 })
 export class ProductService {
 
+
 productTypes: ProductType[] = [];
 
 
@@ -34,5 +35,6 @@ productTypes: ProductType[] = [];
   
     return this.http.post<ProductType>('http://localhost:3000/api/product/add-product', productData);
   }
+  
   
 }

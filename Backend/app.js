@@ -541,5 +541,15 @@ app.get('/api/merchants', (req, res) => {
     });
 });
 
-
+// Endpoint to get reviews for a specific product
+app.get('/api/reviews/:productId', async (req, res) => {
+    try {
+        const productId = req.params.productId;
+        const reviews = await Review.find({ productId: productId }).sort({ createdDate: -1 });
+        res.json(reviews);
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
 module.exports = app; 

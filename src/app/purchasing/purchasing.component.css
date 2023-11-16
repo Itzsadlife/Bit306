@@ -180,3 +180,62 @@ input.ng-invalid {
   justify-content: space-between;
   margin-bottom: 10px;
 }
+
+/* Style the reviews section */
+.reviews {
+  margin-top: 20px;
+  padding: 15px; /* Increased padding */
+  background-color: #fff;
+  border: 1px solid #ddd; /* Lighter border color */
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* Subtler shadow */
+}
+
+.review {
+  border-top: 1px solid #eee; /* Light border for each review */
+  padding: 15px; /* Increased padding */
+  margin-top: 15px; /* Increased margin */
+}
+
+.review h3 {
+  font-size: 1.1rem; /* Increased size for review title */
+  color: #0056b3; /* A different shade of blue for a bit more contrast */
+  margin-bottom: 10px; /* Increased spacing below the title */
+}
+
+.review p {
+  font-size: 1rem; /* Larger font size for review text */
+  color: #333; /* Dark grey color for text for better readability */
+  margin: 10px 0; /* Increased spacing for paragraph elements */
+}
+
+.review strong {
+  color: #000; /* Bold color for strong elements */
+  margin-right: 5px; /* Spacing after strong elements */
+}
+
+.review-rating {
+  display: block; /* Make rating its own line */
+  color: #ffcc00; /* Gold color for star ratings */
+  margin-bottom: 15px; /* Increased spacing below the rating */
+  font-size: 1.2rem; /* Larger font size for ratings */
+}
+
+/* Add a subtle hover effect for review items */
+.review:hover {
+  background-color: #f8f8f8; /* A very light grey background on hover */
+  border-color: #ccc; /* Darker border on hover for emphasis */
+}
+
+/* Hover effect for product items for consistency */
+.product:hover {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+/* For smaller screens, make products take full width */
+@media (max-width: 768px) {
+  .product, .reviews {
+    width: 100%;
+    margin: 10px 0; /* Adjusted margin for vertical stacking */
+  }
+}

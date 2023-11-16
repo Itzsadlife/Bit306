@@ -4,5 +4,6 @@ export interface ProductType {
     name: string;
     description: string;
     imageUrl: string;
-    price: number; // New attribute
+    price: number;
+    reviews?: any[]; // Replace 'any' with your specific ReviewType if available
 }

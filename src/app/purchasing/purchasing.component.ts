@@ -4,6 +4,7 @@ import { ProductType } from '../product.model';
 import { PurchaseService } from '../purchase.service';
 import { ProductService } from '../product.service';
 import { NgForm } from '@angular/forms';
+import { ReviewService } from '../review.service'; // Adjust the import as necessary
 
 @Component({
   selector: 'app-purchasing',
@@ -22,16 +23,23 @@ export class PurchasingComponent implements OnInit {
   selectedProduct: string = '';
   creditCard: string = '';
 
+  
+
   constructor(
     private location: Location,
     private purchaseService: PurchaseService,
-    private productService: ProductService
+    private productService: ProductService,
+    private reviewService: ReviewService
   ) {}
 
   ngOnInit(): void {
-    this.productService.getProducts().subscribe((data: ProductType[]) => {
-      this.products = data;
+    this.productService.getProducts().subscribe((products: ProductType[]) => {
+      this.products = products;
+      this.products.forEach(product => {
+        this.loadReviewsForProduct(product._id); // Use _id here
+      });
     });
+    
   }
 
   purchaseProduct(productName: string) {
@@ -90,4 +98,14 @@ export class PurchasingComponent implements OnInit {
     // Reset the component state after the receipt is generated
     this.resetComponentState();
   }
+
+  loadReviewsForProduct(productId: string): void {
+    this.reviewService.getReviewsByProductId(productId).subscribe(reviews => {
+      const productIndex = this.products.findIndex(p => p._id === productId);
+      if (productIndex !== -1) {
+        this.products[productIndex].reviews = reviews;
+      }
+    });
+  }
+  
 }
