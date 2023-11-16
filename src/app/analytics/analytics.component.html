@@ -17,22 +17,25 @@
       <h2 class="text-center">Analytics Report</h2>
       <p class="text-center">Filtered by: {{ selectedReportType }}</p>
 
-      <!-- Display analytics report data here -->
-      <div class="report-data">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>{{ selectedReportType === 'products' ? 'Product Name' : 'Customer Name' }}</th>
-              <th>{{ selectedReportType === 'products' ? 'Sales' : 'Spending' }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of analyticsData">
-              <td>{{ selectedReportType === 'products' ? item.productName : item.customerName }}</td>
-              <td>{{ selectedReportType === 'products' ? item.sales : item.spending }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- Display analytics report data using ngx-charts -->
+      <ngx-charts-bar-vertical
+        *ngIf="chartData.length"
+        [view]="[700, 300]"
+        [scheme]="'vivid'"
+        [results]="chartData"
+        [gradient]="false"
+        [xAxis]="true"
+        [yAxis]="true"
+        [legend]="true"
+        [showXAxisLabel]="true"
+        [showYAxisLabel]="true"
+        [xAxisLabel]="selectedReportType === 'products' ? 'Product' : 'Customer'"
+        [yAxisLabel]="selectedReportType === 'products' ? 'Sales' : 'Spending'">
+      </ngx-charts-bar-vertical>
+
+      <!-- Optionally, keep the table if you want both table and chart -->
+      <!-- <div class="report-data"> -->
+      <!--   ... existing table ... -->
+      <!-- </div> -->
     </div>
 </div>

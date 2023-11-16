@@ -1,57 +1,95 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { PurchaseService } from '../purchase.service';
 
 @Component({
   selector: 'app-analytics',
   templateUrl: './analyticsOfficer.component.html',
   styleUrls: ['./analyticsOfficer.component.css']
 })
-export class AnalyticsOfficerComponent {
+export class AnalyticsOfficerComponent implements OnInit {
   selectedReportType: string = 'products';
-  analyticsData: any[] = []; // Array to hold analytics data
-  selectedMerchant: string = 'all'; // Initialize with 'all' for all merchants
+  analyticsData: any[] = [];
+  selectedMerchant: string = 'all';
+  merchantsList: any[] = []; // To store the list of merchants
+  chartData: any[] = []; // Data for the chart
 
-  merchants: any = {
-    all: [
-      { productName: 'Product A', sales: 100 },
-      { productName: 'Product B', sales: 150 },
-      { productName: 'Product C', sales: 80 }
-    ],
-    merchant1: [
-      { productName: 'Merchant 1 Product A', sales: 50 },
-      { productName: 'Merchant 1 Product B', sales: 70 }
-    ],
-    merchant2: [
-      { productName: 'Merchant 2 Product A', sales: 30 },
-      { productName: 'Merchant 2 Product B', sales: 80 }
-    ],
-    merchant3: [
-      { productName: 'Merchant 3 Product A', sales: 20 },
-      { productName: 'Merchant 3 Product C', sales: 80 }
-    ]
-    // Add more merchants and data as needed
-  };
+  constructor(private purchaseService: PurchaseService) {}
 
-  generateAnalyticsData() {
-    // Generate hardcoded analytics data based on the selected report type
-    this.analyticsData = this.merchants[this.selectedMerchant];
-  
-
-    
-    
+  ngOnInit(): void {
+    this.fetchMerchants();
+    this.fetchAnalyticsData();
   }
 
-  // Call the function initially to generate data
-  constructor() {
-    this.generateAnalyticsData();
+  fetchMerchants() {
+    this.purchaseService.getMerchants().subscribe(data => {
+      this.merchantsList = data;
+      // Add a 'all' option to view data for all merchants
+      this.merchantsList.unshift({ _id: 'all', name: 'All Merchants' });
+    });
+  }
+
+  fetchAnalyticsData() {
+    // Log to check if the method is called
+    console.log('fetchAnalyticsData called for report type:', this.selectedReportType);
+  
+    const fetchData = this.selectedMerchant === 'all' 
+      ? this.purchaseService.getAllPurchases()
+      : this.purchaseService.getPurchasesByMerchant(this.selectedMerchant);
+  
+    fetchData.subscribe(data => {
+      console.log('Data received from the service:', data); // Log the received data
+      this.analyticsData = data;
+      this.processDataForChart();
+    }, error => {
+      console.error('Error fetching data:', error);
+    });
   }
   
+
+  processDataForChart() {
+    let groupedData = {};
+  
+    if (this.selectedReportType === 'products') {
+      // Aggregate sales by product
+      this.analyticsData.forEach(purchase => {
+        let key = purchase.product; // Assuming 'product' is the name of the product
+        if (!groupedData[key]) {
+          groupedData[key] = 0;
+        }
+        groupedData[key] += Number(purchase.price); // Assuming 'price' is the sales amount for the product
+      });
+    } else if (this.selectedReportType === 'customers') {
+      // Aggregate spending by customer
+      this.analyticsData.forEach(purchase => {
+        let key = purchase.customerName; // Assuming 'customerName' is the name of the customer
+        if (!groupedData[key]) {
+          groupedData[key] = 0;
+        }
+        groupedData[key] += Number(purchase.price); // Assuming 'price' is the amount spent by the customer
+      });
+    }
+  
+    // Convert the aggregated data into an array for the chart
+    this.chartData = Object.keys(groupedData).map(name => {
+      return { name: name, value: groupedData[name] };
+    });
+  
+    console.log('Processed chart data for', this.selectedReportType, ':', this.chartData);
+  }
+  
+  
+  
+
+
   onReportTypeChange() {
-    console.log('Selected Report Type:', this.selectedReportType);
-    this.generateAnalyticsData(); // You can call your data generation method here.
+    // Call fetchAnalyticsData if it's needed to fetch new data based on the report type
+    this.fetchAnalyticsData();
+    // Otherwise, just call processDataForChart to reprocess the current data
+    this.processDataForChart();
   }
   
+
   onMerchantChange() {
-    console.log(this.selectedMerchant)
-    this.generateAnalyticsData();
+    this.fetchAnalyticsData();
   }
 }
