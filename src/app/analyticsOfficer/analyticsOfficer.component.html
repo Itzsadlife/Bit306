@@ -11,12 +11,12 @@
       </select>
     </div>
 
-    <!-- Dropdown for selecting a merchant -->
+    <!-- New Merchant Selection Dropdown -->
     <div class="menu mt-3">
-      <label class="mr-2">Select Merchant:</label>
-      <select [(ngModel)]="selectedMerchant" (change)="onMerchantChange()" class="form-select">
+      <label for="merchantSelect" class="mr-2">Select a merchant to view analytics:</label>
+      <select id="merchantSelect" [(ngModel)]="selectedMerchant" (change)="onMerchantChange()" class="form-select">
         <option value="all">All Merchants</option>
-        <option *ngFor="let merchant of merchantsList" [value]="merchant._id">{{ merchant.name }}</option>
+        <option *ngFor="let merchant of merchantsList" [value]="merchant._id">{{ merchant.firstName }} {{ merchant.lastName }}</option>
       </select>
     </div>
 

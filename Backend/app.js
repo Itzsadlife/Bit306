@@ -532,6 +532,14 @@ app.get('/api/purchases/by-merchant/:merchantId', async (req, res) => {
     }
 });
 
+// Fetch all merchants
+app.get('/api/merchants', (req, res) => {
+    Merchant.find({}).then(merchants => {
+        res.json(merchants);
+    }).catch(err => {
+        res.status(500).send(err);
+    });
+});
 
 
 module.exports = app; 

@@ -20,24 +20,50 @@ export class AnalyticsOfficerComponent implements OnInit {
     this.fetchAnalyticsData();
   }
 
-  fetchMerchants() {
-    this.purchaseService.getMerchants().subscribe(data => {
-      this.merchantsList = data;
-      // Add a 'all' option to view data for all merchants
-      this.merchantsList.unshift({ _id: 'all', name: 'All Merchants' });
-    });
-  }
+  // fetchMerchants() {
+  //   this.purchaseService.getMerchants().subscribe(data => {
+  //     this.merchantsList = data;
+  //     // Add a 'all' option to view data for all merchants
+  //     this.merchantsList.unshift({ _id: 'all', name: 'All Merchants' });
+  //   });
+  // }
 
-  fetchAnalyticsData() {
-    // Log to check if the method is called
-    console.log('fetchAnalyticsData called for report type:', this.selectedReportType);
+  fetchMerchants() {
+    this.purchaseService.getMerchants().subscribe(
+      (merchants) => {
+        this.merchantsList = merchants;
+        console.log('Merchants fetched:', this.merchantsList);
+      },
+      (error) => {
+        console.error('Error fetching merchants:', error);
+      }
+    );
+  }
   
-    const fetchData = this.selectedMerchant === 'all' 
+
+  // fetchAnalyticsData() {
+  //   // Log to check if the method is called
+  //   console.log('fetchAnalyticsData called for report type:', this.selectedReportType);
+  
+  //   const fetchData = this.selectedMerchant === 'all' 
+  //     ? this.purchaseService.getAllPurchases()
+  //     : this.purchaseService.getPurchasesByMerchant(this.selectedMerchant);
+  
+  //   fetchData.subscribe(data => {
+  //     console.log('Data received from the service:', data); // Log the received data
+  //     this.analyticsData = data;
+  //     this.processDataForChart();
+  //   }, error => {
+  //     console.error('Error fetching data:', error);
+  //   });
+  // }
+  
+  fetchAnalyticsData() {
+    const fetchDataObservable = this.selectedMerchant === 'all' 
       ? this.purchaseService.getAllPurchases()
       : this.purchaseService.getPurchasesByMerchant(this.selectedMerchant);
   
-    fetchData.subscribe(data => {
-      console.log('Data received from the service:', data); // Log the received data
+    fetchDataObservable.subscribe(data => {
       this.analyticsData = data;
       this.processDataForChart();
     }, error => {
@@ -92,4 +118,6 @@ export class AnalyticsOfficerComponent implements OnInit {
   onMerchantChange() {
     this.fetchAnalyticsData();
   }
+
+  
 }
