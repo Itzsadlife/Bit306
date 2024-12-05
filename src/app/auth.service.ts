@@ -9,51 +9,71 @@ export class AuthService {
   private isUserAuthenticated = new BehaviorSubject<boolean>(false);
   private isMerchantAuthenticated = new BehaviorSubject<boolean>(false);
   private isGuestMode = new BehaviorSubject<boolean>(false);
+  private userEmail: string; // Add a property to store the user's email
 
-  constructor(private http: HttpClient, private merchantService:MerchantService) {}
-  
+  constructor(private http: HttpClient, private merchantService: MerchantService) {}
+
   userLogin(email: string, password: string) {
     this.isUserAuthenticated.next(true);
     this.isMerchantAuthenticated.next(false);
     this.isGuestMode.next(false);
-    console.log(email);
-    return this.http.post<{ message: string }>('http://localhost:3000/api/user/login', { email: email, password: password });
+    this.userEmail = email; // Set the user's email
+    localStorage.setItem('userEmail', email); // Store the email in localStorage
+    this.userEmail = email; // Also set the user's email in the service property if needed
+    return this.http.post<{ message: string }>('http://localhost:3000/api/user/login', {
+      email: email,
+      password: password,
+    });
   }
 
   merchantLogin(email: string, password: string) {
     this.isMerchantAuthenticated.next(true);
     this.isUserAuthenticated.next(false);
     this.isGuestMode.next(false);
-    return this.http.post<{message: string, _id: string}>('http://localhost:3000/api/merchant/login', { email: email, password: password }).pipe(
+    return this.http
+      .post<{ message: string, _id: string }>('http://localhost:3000/api/merchant/login', {
+        email: email,
+        password: password,
+      })
+      .pipe(
         tap(response => {
-            this.merchantService.currentMerchantId = response._id;
+          this.merchantService.currentMerchantId = response._id;
         })
-    );
-}
+      );
+  }
 
-Guest(){
-  this.isGuestMode.next(true);
-  this.isMerchantAuthenticated.next(false);
-  this.isUserAuthenticated.next(false);
-}
+  Guest() {
+    this.isGuestMode.next(true);
+    this.isMerchantAuthenticated.next(false);
+    this.isUserAuthenticated.next(false);
+  }
 
-isUserLoggedIn() {
-  return this.isUserAuthenticated.asObservable();
-}
-isMerchantLoggedIn() {
-  return this.isMerchantAuthenticated.asObservable();
-}
-isGuestModeActive() {
-  return this.isGuestMode.asObservable();
-}
-logout() {
-  this.isUserAuthenticated.next(false);
-  this.isMerchantAuthenticated.next(false);
-}
-getLoggedInMerchantId(): string {
+  isUserLoggedIn() {
+    return this.isUserAuthenticated.asObservable();
+  }
+
+  isMerchantLoggedIn() {
+    return this.isMerchantAuthenticated.asObservable();
+  }
+
+  isGuestModeActive() {
+    return this.isGuestMode.asObservable();
+  }
+
+  logout() {
+    this.isUserAuthenticated.next(false);
+    this.isMerchantAuthenticated.next(false);
+    this.userEmail = ''; // Clear the user's email when logging out
+    localStorage.removeItem('userEmail'); // Remove the email from localStorage
+    this.userEmail = ''; // Also clear the service property if it's still being used
+  }
+
+  getLoggedInMerchantId(): string {
     console.log('Getting merchant ID from authService:', this.merchantService.currentMerchantId);
     return this.merchantService.currentMerchantId;
-}
+  }
 
-
+  getUserEmail(): string {
+    return localStorage.getItem('userEmail') || '';
+  }
 }

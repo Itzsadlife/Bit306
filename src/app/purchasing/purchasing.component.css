@@ -1,0 +1,182 @@
+/* Apply general styles to the page */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Style product listings */
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.product {
+  width: 45%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.product img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 5px 5px 0 0;
+}
+
+.product-info {
+  padding: 10px;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.product-info h2 {
+  font-size: 1.2rem;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.product-info p {
+  font-size: 0.9rem;
+  margin: 5px 0;
+}
+
+.rating {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.purchase-button {
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.purchase-button:hover {
+  background-color: #0056b3;
+}
+
+/* Style forms */
+form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.form-title {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+label {
+  margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="email"] {
+  padding: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.form-button {
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.form-button:hover {
+  background-color: #0056b3;
+}
+
+/* Style success message */
+.success-message {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.success-text {
+  font-size: 1.2rem;
+}
+
+.success-button {
+  padding: 10px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.success-button:hover {
+  background-color: #43a047;
+}
+
+/* Add this to your component's CSS file */
+.validation-error {
+  color: red; /* Change text color to red */
+}
+
+/* Add a red border to invalid input fields */
+input.ng-invalid {
+  border: 1px solid red;
+}
+
+.receipt {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.receipt-header {
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.receipt-header h2 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.receipt-body {
+  padding: 10px 0;
+}
+
+.receipt-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
